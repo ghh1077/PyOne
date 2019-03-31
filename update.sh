@@ -64,6 +64,23 @@ update_config(){
         echo 'REDIS_DB="0"' >> self_config.py
     fi
 
+    num=`cat self_config.py | grep "default_sort" | wc -l`
+    if [ $num == 0 ]; then
+        echo '' >> self_config.py
+        echo 'default_sort="lastModtime"' >> self_config.py
+    fi
+
+    num=`cat self_config.py | grep "order_m" | wc -l`
+    if [ $num == 0 ]; then
+        echo '' >> self_config.py
+        echo 'order_m="desc"' >> self_config.py
+    fi
+
+    num=`cat self_config.py | grep "default_pan" | wc -l`
+    if [ $num == 0 ]; then
+        echo '' >> self_config.py
+        echo 'default_pan="A"' >> self_config.py
+    fi
 
 }
 
@@ -132,6 +149,11 @@ echo "2019.02.28更新版本：美化500&404页面"
 echo "2019.03.05更新版本：重构&优化上传界面"
 echo "2019.03.08更新版本：优化逻辑&修复文件夹连级加密失效的bug&添加新主题"
 echo "2019.03.14更新版本：后台输出实时日志&&一键升级PyOne"
+echo "2019.03.15更新版本：修复bug&优化layui主题&可设置默认排序字段"
+echo "2019.03.19更新版本：可自定义默认盘&可设置默认排序方法"
+echo "2019.03.22更新版本：可能修复了离线下载一直占用内存的bug"
+echo "2019.03.23更新版本：修复网页查看日志后一直驻后台的bug"
+echo "2019.03.26更新版本：修复上一个版本带来的新bug"
 echo "---------------------------------------------------------------"
 echo "更新完成！"
 echo "如果网站无法访问，请检查config.py!"
@@ -139,6 +161,7 @@ echo "如果一直提示mongodb或者redis未运行，请自行安装lsof"
 echo "---------------------------------------------------------------"
 echo
 echo "PyOne交流群：864996565"
+echo "PyOne交流群TG：https://t.me/joinchat/JQOOug6MY11gy_MiXTmqIA"
 echo "end"
 restart
 

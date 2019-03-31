@@ -113,6 +113,7 @@ auto_boot
 install_aria2
 open_port
 yum install lsof
+mkdir logs
 echo "---------------------------------------------------------------"
 echo "一键脚本运行完成！请检查以下文件："
 echo "  > 1. self_config.py、supervisord.conf是否存在！"
@@ -127,4 +128,5 @@ echo "supervisord -c supervisord.conf"
 echo "---------------------------------------------------------------"
 echo
 echo "PyOne交流群：864996565"
+echo "PyOne交流群TG：https://t.me/joinchat/JQOOug6MY11gy_MiXTmqIA"
 
