@@ -12,6 +12,25 @@ def setting():
         title=request.form.get('title','PyOne')
         theme=request.form.get('theme','material')
         title_pre=request.form.get('title_pre','index of ')
+
+        set('title',title)
+        set('title_pre',title_pre)
+        set('theme',theme)
+
+        # reload()
+        redis_client.set('title',title)
+        redis_client.set('title_pre',title_pre)
+        redis_client.set('theme',theme)
+        flash('更新成功')
+        resp=MakeResponse(redirect(url_for('admin.setting')))
+        return resp
+    resp=MakeResponse(render_template('admin/setting/setting.html'))
+    return resp
+
+
+@admin.route('/sys_setting',methods=['GET','POST'])
+def sys_setting():
+    if request.method=='POST':
         downloadUrl_timeout=request.form.get('downloadUrl_timeout',5*60)
         allow_site=request.form.get('allow_site','no-referrer')
         #Aria2
@@ -34,11 +53,13 @@ def setting():
 
         order_m=request.form.get('order_m','desc')
         default_sort=request.form.get('default_sort','lastModtime')
+        admin_prefix=request.form.get('admin_prefix','admin')
+        balance=request.form.get('balance','False')
         show_secret=request.form.get('show_secret','no')
         encrypt_file=request.form.get('encrypt_file','no')
-        set('title',title)
-        set('title_pre',title_pre)
-        set('theme',theme)
+        thread_num=request.form.get('thread_num','5')
+        verify_url=request.form.get('verify_url','False')
+
         set('downloadUrl_timeout',downloadUrl_timeout)
         set('allow_site',allow_site)
         #Aria2
@@ -59,13 +80,15 @@ def setting():
         set('REDIS_PASSWORD',REDIS_PASSWORD)
 
         set('default_sort',default_sort)
+        set('admin_prefix',admin_prefix)
+        set('balance',balance)
         set('order_m',order_m)
         set('show_secret',show_secret)
         set('encrypt_file',encrypt_file)
+        set('thread_num',thread_num)
+        set('verify_url',verify_url)
         # reload()
-        redis_client.set('title',title)
-        redis_client.set('title_pre',title_pre)
-        redis_client.set('theme',theme)
+
         redis_client.set('downloadUrl_timeout',downloadUrl_timeout)
         redis_client.set('allow_site',','.join(allow_site.split(',')))
         #Aria2
@@ -88,13 +111,17 @@ def setting():
         redis_client.set('REDIS_PASSWORD',REDIS_PASSWORD)
 
         redis_client.set('default_sort',default_sort)
+        redis_client.set('admin_prefix',admin_prefix)
+        redis_client.set('balance',balance)
         redis_client.set('order_m',order_m)
         redis_client.set('show_secret',show_secret)
         redis_client.set('encrypt_file',encrypt_file)
+        redis_client.set('thread_num',thread_num)
+        redis_client.set('verify_url',verify_url)
         flash('更新成功')
-        resp=MakeResponse(redirect(url_for('admin.setting')))
+        resp=MakeResponse(redirect(url_for('admin.sys_setting')))
         return resp
-    resp=MakeResponse(render_template('admin/setting/setting.html'))
+    resp=MakeResponse(render_template('admin/setting/sys_setting.html'))
     return resp
 
 
@@ -105,18 +132,60 @@ def setCode():
         headCode=request.form.get('headCode','')
         footCode=request.form.get('footCode','')
         cssCode=request.form.get('cssCode','')
+        robots=request.form.get('robots','')
         #redis
         set('tj_code',tj_code)
         set('headCode',headCode)
         set('footCode',footCode)
         set('cssCode',cssCode)
+        set('robots',robots)
         # reload()
         redis_client.set('tj_code',tj_code)
         redis_client.set('headCode',headCode)
         redis_client.set('footCode',footCode)
         redis_client.set('cssCode',cssCode)
+        redis_client.set('robots',robots)
         flash('更新成功')
         resp=MakeResponse(render_template('admin/setCode/setCode.html'))
         return resp
     resp=MakeResponse(render_template('admin/setCode/setCode.html'))
+    return resp
+
+
+@admin.route('/show_setting',methods=['GET','POST'])
+def show_setting():
+    if request.method=='POST':
+        show_redirect=request.form.get('show_redirect')
+        set('show_redirect',show_redirect)
+        redis_client.set('show_redirect',show_redirect)
+
+        show_doc=request.form.get('show_doc')
+        set('show_doc',show_doc)
+        redis_client.set('show_doc',show_doc)
+
+        show_image=request.form.get('show_image')
+        set('show_image',show_image)
+        redis_client.set('show_image',show_image)
+
+        show_video=request.form.get('show_video')
+        set('show_video',show_video)
+        redis_client.set('show_video',show_video)
+
+        show_dash=request.form.get('show_dash')
+        set('show_dash',show_dash)
+        redis_client.set('show_dash',show_dash)
+
+        show_audio=request.form.get('show_audio')
+        set('show_audio',show_audio)
+        redis_client.set('show_audio',show_audio)
+
+        show_code=request.form.get('show_code')
+        set('show_code',show_code)
+        redis_client.set('show_code',show_code)
+
+
+        flash('更新成功')
+        resp=MakeResponse(redirect(url_for('admin.show_setting')))
+        return resp
+    resp=MakeResponse(render_template('admin/setting/show_setting.html'))
     return resp

@@ -19,6 +19,7 @@ def panage():
             text=f.read()
         redis_client.set('users',re.findall('od_users=([\w\W]*})',text)[0])
         flash('更新成功')
+        redis_client.delete(key)
         resp=MakeResponse(redirect(url_for('admin.panage')))
         return resp
     resp=MakeResponse(render_template('admin/pan_manage/pan_manage.html'))
@@ -47,11 +48,11 @@ def add_pan():
         with open(config_path,'w') as f:
             old_od=re.findall('od_users={[\w\W]*}',old_text)[0]
             new_od='od_users='+json.dumps(od_users,indent=4,ensure_ascii=False)
-            print(new_od)
             new_text=old_text.replace(old_od,new_od,1)
             f.write(new_text)
         flash('添加盘符[{}]成功'.format(pan))
         key='users'
+        redis_client.delete("od_users")
         redis_client.delete(key)
         return redirect(url_for('admin.add_pan'))
     return render_template('admin/pan_manage/add_pan.html')
@@ -72,6 +73,7 @@ def rm_pan():
             f.write(new_text)
         key='users'
         redis_client.delete(key)
+        redis_client.delete("od_users")
         mon_db.items.delete_many({'user':pan})
         data=dict(msg='删除盘符[{}]成功'.format(pan),status=1)
         return jsonify(data)
@@ -83,6 +85,7 @@ def rm_pan():
 def setDefaultPan():
     pan=request.form.get('pan')
     set('default_pan',pan)
+    redis_client.delete("od_users")
     redis_client.set('default_pan',pan)
     return jsonify({'msg':'修改成功'})
 

@@ -3,6 +3,11 @@ from base_view import *
 
 
 
+@admin.route('/treelists/<user>')
+def treelists(user):
+    data=GetTreeList(user)
+    return jsonify(data)
+
 
 ######离线下载---调用aria2
 @admin.route('/off_download',methods=['POST','GET'])
@@ -13,6 +18,8 @@ def off_download():
             return jsonify({'status':False,'msg':p})
         urls=request.form.get('urls').split('\n')
         grand_path=request.form.get('grand_path')
+        if grand_path!='/':
+            u,grand_path=grand_path.split(':')
         user=request.form.get('user')
         for url in urls:
             if url.strip()!='':
@@ -21,12 +28,14 @@ def off_download():
                 subprocess.Popen(cmd,shell=True)
         return jsonify({'status':True,'msg':'ok'})
     path=request.args.get('path')
+    if path is None:
+        path=GetConfig("default_pan")+':/'
     user,grand_path=path.split(':')
     msg=None
     p,status=get_aria2()
     if not status:
         msg=p
-    resp=MakeResponse(render_template('admin/offdownload.html',grand_path=grand_path,cur_user=user,msg=msg))
+    resp=MakeResponse(render_template('admin/offdownload.html',grand_path=grand_path,cur_user=user,cur_path=path,msg=msg))
     return resp
 
 
@@ -56,3 +65,4 @@ def clearHist():
     mon_db.down_db.delete_many({})
     ret={'msg':'清除成功！'}
     return jsonify(ret)
+

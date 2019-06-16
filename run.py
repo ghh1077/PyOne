@@ -25,7 +25,10 @@ app.logger.addHandler(ErrorLogger().file_handler)
 app.logger.setLevel(logging.DEBUG)
 
 ######################初始化变量
-pool = ConnectionPool(host='localhost', port=6379, db=0)
+if REDIS_PASSWORD!="":
+    pool = ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB,password=REDIS_PASSWORD)
+else:
+    pool = ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 tmp_rd=Redis(connection_pool=pool)
 tmp_rd.set('title',title)
 tmp_rd.set('tj_code',tj_code)
@@ -36,6 +39,10 @@ tmp_rd.set('ARIA2_PORT',ARIA2_PORT)
 tmp_rd.set('ARIA2_SECRET',ARIA2_SECRET)
 tmp_rd.set('ARIA2_SCHEME',ARIA2_SCHEME)
 tmp_rd.set('password',password)
+tmp_rd.set('verify_url',verify_url)
+tmp_rd.set('balance',balance)
+tmp_rd.set('admin_prefix',admin_prefix)
+tmp_rd.set('thread_num',thread_num)
 config_path=os.path.join(config_dir,'self_config.py')
 with open(config_path,'r') as f:
     text=f.read()
@@ -59,6 +66,7 @@ app.jinja_env.globals['CutText']=CutText
 app.jinja_env.globals['GetConfig']=GetConfig
 app.jinja_env.globals['config_dir']=config_dir
 app.jinja_env.globals['GetThemeList']=GetThemeList
+app.jinja_env.globals['GenerateToken']=GenerateToken
 app.jinja_env.globals['get_od_user']=get_od_user
 
 ################################################################################

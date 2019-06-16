@@ -27,7 +27,7 @@ a:hover {
 <div class="mdui-table-fluid">
     <div class="mdui-appbar">
         <div class="mdui-tab mdui-color-theme" mdui-tab>
-            {%for user in get_od_user()%}
+            {%for user in get_od_user(True)%}
                 {%if user[1]=='添加网盘'%}
                 <a href="{{url_for('admin.install',user=user[0],step=0)}}" class="mdui-ripple mdui-ripple-white{%if cur_user==user[0]%} mdui-tab-active{%endif%}" id="{{user[0]}}">
                     <i class="mdui-icon material-icons">&#xe2bf;</i>
@@ -129,9 +129,13 @@ a:hover {
                     </label>
                 </td>
                 <td class="file">
-                    <a href="{{url_for('front.index',path=path+'/'+data['name'])|safe}}" target="_blank" class="mdui-list-item">
+                    {%if GetConfig("verify_url")=="True"%}
+                    <a href="{{url_for('front.index',path=data['path'],token=GenerateToken(data['path']))}}" target="_blank" class="mdui-list-item">
+                    {%else%}
+                    <a href="{{url_for('front.index',path=data['path'])}}" target="_blank" class="mdui-list-item">
+                    {%endif%}
                           <i class="mdui-icon material-icons">{{file_ico(data)}}</i> {{data['name']}}
-                      </a>
+                    </a>
                 </td>
                 <td>{{data['lastModtime']}}</td>
                 <td>
@@ -169,7 +173,11 @@ $$(function() {
               shadeClose: true,
               shade: 0.8,
               area: ['100%', '100%'],
+              {%if GetConfig("verify_url")=="True"%}
+              content: $$(this).attr('href')+"&action=share" //iframe的url
+              {%else%}
               content: $$(this).attr('href')+"?action=share" //iframe的url
+              {%endif%}
             });
             return false;
         });

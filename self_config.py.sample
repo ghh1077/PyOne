@@ -22,6 +22,10 @@ tj_code=""""""
 headCode=""""""
 footCode=""""""
 cssCode=""""""
+robots="""
+User-agent:  *
+Disallow:  /
+"""
 
 #主题设置
 theme="material"
@@ -66,6 +70,19 @@ encrypt_file="no"
 #默认盘位
 default_pan="A"
 
+#后台路径
+admin_prefix="admin"
+
+#是否做负载均衡
+balance="False"
+
+#多线程最大线程
+thread_num="5"
+
+#是否开启下载链接验证
+verify_url="True"
+
+
 od_users={
     "A":{
         "client_id":"",
@@ -89,5 +106,16 @@ od_users={
         "order":3
     }
 }
+
+
+
+show_doc="csv,doc,docx,odp,ods,odt,pot,potm,potx,pps,ppsx,ppsxm,ppt,pptm,pptx,rtf,xls,xlsx"
+show_image="bmp,jpg,jpeg,png,gif"
+show_video="mp4,webm"
+show_dash="avi,mpg,mpeg,rm,rmvb,mov,wmv,mkv,asf"
+show_audio="ogg,mp3,wav,aac,flac,m4a"
+show_code="html,htm,php,py,css,go,java,js,json,txt,sh,md"
+show_redirect="exe"
+
 
 

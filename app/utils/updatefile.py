@@ -2,11 +2,15 @@
 from header import *
 
 def Dir(path=u'{}:/'.format(GetConfig('default_pan'))):
-    app_url=GetAppUrl()
     user,n_path=path.split(':')
+    od_type=get_value('od_type',user)
+    app_url=GetAppUrl(user)
     InfoLogger().print_r('update {}\'s {} file'.format(user,n_path))
     if n_path=='/':
-        BaseUrl=app_url+u'v1.0/me/drive/root/children?expand=thumbnails'
+        if od_type=='nocn' or od_type is None or od_type==False:
+            BaseUrl=app_url+u'v1.0/me/drive/root/children?expand=thumbnails'
+        else:
+            BaseUrl=app_url+u'_api/v2.0/me/drive/root/children?expand=thumbnails'
         mon_db.items.remove({'user':user})
         queue=Queue()
         g=GetItemThread(queue,user)
@@ -30,7 +34,10 @@ def Dir(path=u'{}:/'.format(GetConfig('default_pan'))):
             grandid=idx+1
             parent=parent_id
         n_path=urllib.quote(n_path.encode('utf-8'))
-        BaseUrl=app_url+u'v1.0/me/drive/root:{}:/children?expand=thumbnails'.format(n_path)
+        if od_type=='nocn' or od_type is None or od_type==False:
+            BaseUrl=app_url+u'v1.0/me/drive/root:{}:/children?expand=thumbnails'.format(n_path)
+        else:
+            BaseUrl=app_url+u'_api/v2.0/me/drive/root:{}:/children?expand=thumbnails'.format(n_path)
         queue=Queue()
         g=GetItemThread(queue,user)
         g.GetItem(BaseUrl,grandid,parent,1)
@@ -38,7 +45,7 @@ def Dir(path=u'{}:/'.format(GetConfig('default_pan'))):
     if queue.qsize()==0:
         return
     tasks=[]
-    for i in range(min(10,queue.qsize())):
+    for i in range(min(int(GetConfig('thread_num')),queue.qsize())):
         t=GetItemThread(queue,user)
         t.setDaemon(True)
         t.start()
@@ -66,28 +73,46 @@ def Dir(path=u'{}:/'.format(GetConfig('default_pan'))):
     # RemoveRepeatFile()
 
 
-def UpdateFile(renew='all'):
+def UpdateFile(renew='all',fresh_user=None):
     tasks=[]
-    if renew=='all':
-        mon_db.items.delete_many({})
-        clearRedis()
-        for user,item in od_users.items():
-            if item.get('client_id')!='':
-                share_path='{}:{}'.format(user,item['share_path'])
-                # Dir_all(share_path)
-                t=Thread(target=Dir,args=(share_path,))
-                t.start()
-                tasks.append(t)
-        for t in tasks:
-            t.join()
+    InfoLogger().print_r('[* UpdateFile] user:{}, method:{}'.format(fresh_user,renew))
+    if fresh_user is None or fresh_user=='':
+        if renew=='all':
+            mon_db.items.delete_many({})
+            InfoLogger().print_r('[* UpdateFile] delete local data;check file num:{}'.format(mon_db.items.count()))
+            clearRedis()
+            for user,item in od_users.items():
+                if item.get('client_id')!='':
+                    share_path='{}:/'.format(user)
+                    # Dir_all(share_path)
+                    t=Thread(target=Dir,args=(share_path,))
+                    t.start()
+                    tasks.append(t)
+            for t in tasks:
+                t.join()
+        else:
+            for user,item in od_users.items():
+                if item.get('client_id')!='':
+                    share_path='{}:/'.format(user)
+                    # Dir(share_path)
+                    t=Thread(target=Dir,args=(share_path,))
+                    t.start()
+                    tasks.append(t)
+            for t in tasks:
+                t.join()
     else:
-        for user,item in od_users.items():
-            if item.get('client_id')!='':
-                share_path='{}:{}'.format(user,item['share_path'])
-                # Dir(share_path)
-                t=Thread(target=Dir,args=(share_path,))
-                t.start()
-                tasks.append(t)
+        if renew=='all':
+            a=mon_db.items.delete_many({'user':fresh_user})
+            clearRedis(fresh_user)
+            share_path='{}:/'.format(fresh_user)
+            t=Thread(target=Dir,args=(share_path,))
+            t.start()
+            t.join()
+        else:
+            share_path='{}:/'.format(fresh_user)
+            t=Thread(target=Dir,args=(share_path,))
+            t.start()
+            t.join()
     while 1:
         for t in tasks:
             if t.isAlive()==False:
@@ -105,9 +130,14 @@ def GetRootid(user=GetConfig('default_pan')):
     if redis_client.exists(key):
         return redis_client.get(key)
     else:
-        app_url=GetAppUrl()
+        app_url=GetAppUrl(user)
+        od_type=get_value('od_type',user)
         token=GetToken(user=user)
-        url=app_url+u'v1.0/me/drive/root/'
+        if od_type=='nocn' or od_type is None or od_type==False:
+            url=app_url+u'v1.0/me/drive/root/'
+        else:
+            url=app_url+u'_api/v2.0/me/drive/root/'
+
         headers={'Authorization': 'Bearer {}'.format(token)}
         headers.update(default_headers)
         r=browser.get(url,headers=headers)
@@ -117,10 +147,15 @@ def GetRootid(user=GetConfig('default_pan')):
 
 
 def FileExists(filename,user=GetConfig('default_pan')):
+    app_url=GetAppUrl(user)
+    od_type=get_value('od_type',user)
     token=GetToken(user=user)
     headers={'Authorization':'bearer {}'.format(token),'Content-Type':'application/json'}
     headers.update(default_headers)
-    search_url=app_url+"v1.0/me/drive/root/search(q='{}')".format(convert2unicode(filename))
+    if od_type=='nocn' or od_type is None or od_type==False:
+        search_url=app_url+"v1.0/me/drive/root/search(q='{}')".format(convert2unicode(filename))
+    else:
+        search_url=app_url+"_api/v2.0/me/drive/root/search(q='{}')".format(convert2unicode(filename))
     r=browser.get(search_url,headers=headers)
     jsondata=json.loads(r.text)
     if len(jsondata['value'])==0:
@@ -129,10 +164,15 @@ def FileExists(filename,user=GetConfig('default_pan')):
         return True
 
 def FileInfo(fileid,user=GetConfig('default_pan')):
+    app_url=GetAppUrl(user)
+    od_type=get_value('od_type',user)
     token=GetToken(user=user)
     headers={'Authorization':'bearer {}'.format(token),'Content-Type':'application/json'}
     headers.update(default_headers)
-    search_url=app_url+"v1.0/me/drive/items/{}".format(fileid)
+    if od_type=='nocn' or od_type is None or od_type==False:
+        search_url=app_url+"v1.0/me/drive/items/{}".format(fileid)
+    else:
+        search_url=app_url+"_api/v2.0/me/drive/items/{}".format(fileid)
     r=browser.get(search_url,headers=headers)
     jsondata=json.loads(r.text)
     return jsondata
