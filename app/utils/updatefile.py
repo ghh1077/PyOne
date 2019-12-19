@@ -78,8 +78,8 @@ def UpdateFile(renew='all',fresh_user=None):
     InfoLogger().print_r('[* UpdateFile] user:{}, method:{}'.format(fresh_user,renew))
     if fresh_user is None or fresh_user=='':
         if renew=='all':
-            mon_db.items.delete_many({})
             InfoLogger().print_r('[* UpdateFile] delete local data;check file num:{}'.format(mon_db.items.count()))
+            mon_db.items.delete_many({})
             clearRedis()
             for user,item in od_users.items():
                 if item.get('client_id')!='':
@@ -140,7 +140,7 @@ def GetRootid(user=GetConfig('default_pan')):
 
         headers={'Authorization': 'Bearer {}'.format(token)}
         headers.update(default_headers)
-        r=browser.get(url,headers=headers)
+        r=browser.get(url,headers=headers,verify=False)
         data=json.loads(r.content)
         redis_client.set(key,data['id'],3600)
         return data['id']
@@ -156,7 +156,7 @@ def FileExists(filename,user=GetConfig('default_pan')):
         search_url=app_url+"v1.0/me/drive/root/search(q='{}')".format(convert2unicode(filename))
     else:
         search_url=app_url+"_api/v2.0/me/drive/root/search(q='{}')".format(convert2unicode(filename))
-    r=browser.get(search_url,headers=headers)
+    r=browser.get(search_url,headers=headers,verify=False)
     jsondata=json.loads(r.text)
     if len(jsondata['value'])==0:
         return False
@@ -173,6 +173,6 @@ def FileInfo(fileid,user=GetConfig('default_pan')):
         search_url=app_url+"v1.0/me/drive/items/{}".format(fileid)
     else:
         search_url=app_url+"_api/v2.0/me/drive/items/{}".format(fileid)
-    r=browser.get(search_url,headers=headers)
+    r=browser.get(search_url,headers=headers,verify=False)
     jsondata=json.loads(r.text)
     return jsondata

@@ -2,10 +2,9 @@ flask
 flask_sqlalchemy
 redis
 pymongo
-gunicorn
+gunicorn==19.3.0
 humanize
 python_dateutil
-supervisor
 requests
 markdown
 shelljob
@@ -15,3 +14,6 @@ flask_limiter
 Flask-And-Redis
 flask_script
 pycrypto
+requests[security]
+urllib3
+pyopenssl
